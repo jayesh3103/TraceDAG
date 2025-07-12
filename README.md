@@ -1,6 +1,6 @@
 # 🔗 TraceDAG — Transparent Supply Chains on Blockchain
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 ![Status](https://img.shields.io/badge/status-Prototype-yellow)
 ![Built With](https://img.shields.io/badge/built%20with-React%20%7C%20Tailwind%20%7C%20TypeScript%20%7C%20Vite-brightgreen)
 
