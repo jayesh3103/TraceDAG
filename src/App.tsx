@@ -1,66 +1,79 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { Header } from './components/layout/Header';
-import { Dashboard } from './components/dashboard/Dashboard';
-import { Scanner } from './components/scanner/Scanner';
-import { ManufacturerDashboard } from './components/manufacturer/ManufacturerDashboard';
-import { ProductView } from './components/product/ProductView';
-import { useAppStore } from './store/useAppStore';
+import { Footer } from './components/layout/Footer';
+import { BottomNavigation } from './components/ui/BottomNavigation';
+import { FloatingActionButton } from './components/ui/FloatingActionButton';
+import { ToastContainer } from './components/ui/Toast';
+import { OfflineIndicator } from './components/ui/OfflineIndicator';
+import { ManufacturerDashboard } from './pages/ManufacturerDashboard';
+import { CheckpointScanner } from './pages/CheckpointScanner';
+import { CustomerView } from './pages/CustomerView';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { useToast } from './hooks/useToast';
+import { useOfflineSync } from './hooks/useOfflineSync';
 
 function App() {
-  const { currentView, error, clearError, setUser, setConnected } = useAppStore();
-  
-  // Mock user connection on app start
-  useEffect(() => {
-    // Simulate wallet connection
-    const mockUser = {
-      address: '0x742d35Cc6634C0532925a3b8D4C9db96590b5b8c',
-      name: 'John Manufacturer',
-      role: 'manufacturer' as const,
-      company: 'TechCorp Industries',
-      verified: true,
-    };
-    
-    setUser(mockUser);
-    setConnected(true);
-  }, [setUser, setConnected]);
-  
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'scanner':
-        return <Scanner />;
+  const [currentPage, setCurrentPage] = useState<string>('customer');
+  const { toasts, removeToast } = useToast();
+  const { isOnline, pendingCheckpoints, syncPendingCheckpoints, hasPendingSync } = useOfflineSync();
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const renderPage = () => {
+    switch (currentPage) {
       case 'manufacturer':
         return <ManufacturerDashboard />;
-      case 'product':
-        return <ProductView />;
+      case 'scanner':
+        return <CheckpointScanner />;
+      case 'customer':
+        return <CustomerView />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
-        return <Dashboard />;
+        return <CustomerView />;
     }
   };
-  
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await syncPendingCheckpoints();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleFABClick = () => {
+    if (currentPage === 'customer' || currentPage === 'scanner') {
+      setCurrentPage('scanner');
+    } else {
+      setCurrentPage('manufacturer');
+    }
+  };
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-900/10 dark:to-purple-900/10 flex flex-col">
+      <Header currentPage={currentPage} onPageChange={setCurrentPage} />
       
-      {/* Error notification */}
-      {error && (
-        <div className="bg-green-50 border-l-4 border-green-400 p-4 mx-4 mt-4 rounded-r-lg">
-          <div className="flex items-center justify-between">
-            <p className="text-green-700">{error}</p>
-            <button
-              onClick={clearError}
-              className="text-green-400 hover:text-green-600"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
+      <OfflineIndicator
+        isOnline={isOnline}
+        pendingSync={pendingCheckpoints.length}
+        onSync={handleSync}
+        isSyncing={isSyncing}
+      />
       
-      <main>
-        {renderCurrentView()}
+      <main className="flex-1 pb-20 md:pb-0">
+        {renderPage()}
       </main>
+      
+      <Footer />
+      
+      <BottomNavigation currentPage={currentPage} onPageChange={setCurrentPage} />
+      
+      <FloatingActionButton
+        onClick={handleFABClick}
+        icon={currentPage === 'customer' || currentPage === 'scanner' ? 'scan' : 'add'}
+      />
+      
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

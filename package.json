@@ -10,19 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.81.5",
-    "@wagmi/connectors": "^5.8.5",
-    "@wagmi/core": "^2.17.3",
-    "clsx": "^2.1.1",
-    "html5-qrcode": "^2.3.8",
+    "@fontsource/inter": "^5.2.6",
     "lucide-react": "^0.344.0",
-    "qrcode": "^1.5.4",
-    "qrcode-generator": "^2.0.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^3.3.1",
-    "viem": "^2.31.7",
-    "zustand": "^5.0.6"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

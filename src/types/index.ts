@@ -1,46 +1,54 @@
 export interface Product {
   id: string;
-  tokenId: string;
   name: string;
-  description: string;
+  batchId: string;
+  manufactureDate: string;
   manufacturer: string;
-  batchNumber: string;
-  createdAt: number;
+  tokenId: string;
   qrCode: string;
-  status: 'active' | 'completed' | 'flagged';
+  status: 'verified' | 'suspicious' | 'pending';
+  documents: Document[];
+  sustainabilityScore: number;
+  carbonFootprint: number;
+  checkpoints: Checkpoint[];
+  createdAt: string;
 }
 
 export interface Checkpoint {
   id: string;
   productId: string;
-  location: {
+  location: string;
+  timestamp: string;
+  handler: string;
+  notes?: string;
+  transactionHash: string;
+  coordinates?: {
     lat: number;
     lng: number;
-    address: string;
-    label: string;
   };
-  timestamp: number;
-  blockNumber: number;
-  handlerAddress: string;
-  handlerName: string;
-  role: 'manufacturer' | 'warehouse' | 'shipper' | 'retailer' | 'other';
-  notes?: string;
-  documents?: string[]; // IPFS hashes
-  transactionHash: string;
+}
+
+export interface Document {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
+  ipfsHash: string;
 }
 
 export interface User {
-  address: string;
+  id: string;
   name: string;
-  role: 'manufacturer' | 'logistics' | 'consumer' | 'auditor';
+  role: 'manufacturer' | 'logistics' | 'retailer' | 'customer' | 'admin';
   company?: string;
-  verified: boolean;
 }
 
-export interface ContractEvent {
-  type: 'ProductMinted' | 'CheckpointAdded' | 'StatusUpdated';
+export interface DeFiLoan {
+  id: string;
   productId: string;
-  data: any;
-  blockNumber: number;
-  timestamp: number;
+  amount: number;
+  interestRate: number;
+  duration: number;
+  status: 'active' | 'completed' | 'defaulted';
+  collateralValue: number;
 }
