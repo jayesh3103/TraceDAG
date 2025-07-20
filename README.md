@@ -12,7 +12,7 @@
 
 ## 🌍 Live Demo
 
-👉 [**Visit the App**](https://gilded-gingersnap-d82c5b.netlify.app/)
+👉 [**Visit the App**](https://tracedag.vercel.app/)
 
 ---
 
