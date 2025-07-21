@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { QrCode, MapPin, Clock, User, FileText, Scan, AlertCircle } from 'lucide-react';
+import { QrCode, MapPin, Clock, User, FileText, Scan, AlertCircle, Camera } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 import { ProductCard } from '../components/features/ProductCard';
+import { QRScanner } from '../components/features/QRScanner';
 import { Product, Checkpoint } from '../types';
 import { mockProducts } from '../data/mockData';
 import { simulateBlockchainTransaction } from '../utils/blockchain';
@@ -14,23 +15,33 @@ export const CheckpointScanner: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [qrInput, setQrInput] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
   const [formData, setFormData] = useState({
     location: '',
     handler: '',
     notes: '',
   });
 
-  const handleQRScan = () => {
-    if (!qrInput.trim()) {
+  // Listen for FAB click to open scanner
+  React.useEffect(() => {
+    const handleOpenScanner = () => setShowScanner(true);
+    window.addEventListener('openQRScanner', handleOpenScanner);
+    return () => window.removeEventListener('openQRScanner', handleOpenScanner);
+  }, []);
+
+  const handleQRScan = (qrValue?: string) => {
+    const scanValue = qrValue || qrInput;
+    
+    if (!scanValue.trim()) {
       alert('Please enter a QR code value');
       return;
     }
 
     // Find product by QR code (mock)
     const product = mockProducts.find(p => 
-      p.qrCode === qrInput || 
-      p.id === qrInput ||
-      qrInput.includes(p.id)
+      p.qrCode === scanValue || 
+      p.id === scanValue ||
+      scanValue.includes(p.id)
     );
 
     if (product) {
@@ -41,7 +52,7 @@ export const CheckpointScanner: React.FC = () => {
         notes: '',
       });
     } else {
-      alert('Product not found. Please check the QR code.');
+      alert(`Product not found for: ${scanValue}. Please check the QR code.`);
     }
   };
 
@@ -121,7 +132,7 @@ export const CheckpointScanner: React.FC = () => {
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Enter QR Code or Product ID
+                QR Code or Product ID
               </label>
               <div className="flex space-x-2">
                 <input
@@ -132,20 +143,35 @@ export const CheckpointScanner: React.FC = () => {
                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
                 <Button onClick={handleQRScan}>
-                  <Scan className="w-4 h-4 mr-2" />
+                  <Scan className="w-4 h-4 mr-1" />
+                  Search
+                </Button>
+                <Button onClick={() => setShowScanner(true)} variant="outline">
+                  <Camera className="w-4 h-4 mr-1" />
                   Scan
                 </Button>
               </div>
             </div>
 
-            {/* Mock Camera Scanner */}
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-              <QrCode className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
-                Camera scanner would be integrated here
+            {/* Camera Scanner Info */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <Camera className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                Camera QR Scanner Ready
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Click "Scan" to use your camera for QR code detection
               </p>
-              <p className="text-sm text-gray-400 mt-2">
-                For demo: try "QR-PROD-001" or "PROD-001"
+              <Button onClick={() => setShowScanner(true)} className="w-full">
+                <Camera className="w-4 h-4 mr-2" />
+                Open Camera Scanner
+              </Button>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                💡 For demo: try "PROD-001", "PROD-002", or manual input
               </p>
             </div>
           </CardContent>
@@ -354,6 +380,15 @@ export const CheckpointScanner: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleQRScan}
+        title="Scan Product QR Code"
+        subtitle="Position the QR code within the camera frame"
+      />
     </div>
   );
 };

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Search, Shield, FileText, Award, Leaf, TrendingUp } from 'lucide-react';
+import { Search, Shield, FileText, Award, Leaf, TrendingUp, Camera } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { ProductCard } from '../components/features/ProductCard';
 import { JourneyTimeline } from '../components/features/JourneyTimeline';
 import { DeFiPanel } from '../components/features/DeFiPanel';
+import { QRScanner } from '../components/features/QRScanner';
 import { Product } from '../types';
 import { mockProducts } from '../data/mockData';
 import { getSustainabilityBadge } from '../utils/sustainability';
@@ -14,23 +15,33 @@ export const CustomerView: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<'journey' | 'documents' | 'defi'>('journey');
+  const [showScanner, setShowScanner] = useState(false);
 
-  const handleSearch = () => {
-    if (!searchInput.trim()) {
+  // Listen for FAB click to open scanner
+  React.useEffect(() => {
+    const handleOpenScanner = () => setShowScanner(true);
+    window.addEventListener('openQRScanner', handleOpenScanner);
+    return () => window.removeEventListener('openQRScanner', handleOpenScanner);
+  }, []);
+
+  const handleSearch = (qrValue?: string) => {
+    const searchValue = qrValue || searchInput;
+    
+    if (!searchValue.trim()) {
       alert('Please enter a product ID or QR code');
       return;
     }
 
     const product = mockProducts.find(p => 
-      p.id === searchInput ||
-      p.qrCode === searchInput ||
-      searchInput.includes(p.id)
+      p.id === searchValue ||
+      p.qrCode === searchValue ||
+      searchValue.includes(p.id)
     );
 
     if (product) {
       setSelectedProduct(product);
     } else {
-      alert('Product not found. Please check the ID or QR code.');
+      alert(`Product not found for: ${searchValue}. Please check the ID or QR code.`);
     }
   };
 
@@ -62,10 +73,16 @@ export const CustomerView: React.FC = () => {
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            <Button onClick={handleSearch} size="lg">
-              <Search className="w-5 h-5 mr-2" />
-              Verify Product
-            </Button>
+            <div className="flex space-x-2">
+              <Button onClick={() => handleSearch()} size="lg">
+                <Search className="w-5 h-5 mr-2" />
+                Verify
+              </Button>
+              <Button onClick={() => setShowScanner(true)} variant="outline" size="lg">
+                <Camera className="w-5 h-5 mr-2" />
+                Scan QR
+              </Button>
+            </div>
           </div>
           
           <div className="mt-4 text-center">
@@ -273,6 +290,15 @@ export const CustomerView: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleSearch}
+        title="Verify Product Authenticity"
+        subtitle="Scan the QR code on your product packaging"
+      />
     </div>
   );
 };

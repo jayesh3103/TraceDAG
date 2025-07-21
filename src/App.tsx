@@ -43,8 +43,14 @@ function App() {
   };
 
   const handleFABClick = () => {
-    if (currentPage === 'customer' || currentPage === 'scanner') {
-      setCurrentPage('scanner');
+    if (currentPage === 'customer') {
+      // For customer page, trigger QR scanner directly
+      const event = new CustomEvent('openQRScanner');
+      window.dispatchEvent(event);
+    } else if (currentPage === 'scanner') {
+      // For scanner page, trigger QR scanner
+      const event = new CustomEvent('openQRScanner');
+      window.dispatchEvent(event);
     } else {
       setCurrentPage('manufacturer');
     }
@@ -70,7 +76,7 @@ function App() {
       
       <FloatingActionButton
         onClick={handleFABClick}
-        icon={currentPage === 'customer' || currentPage === 'scanner' ? 'scan' : 'add'}
+        icon={currentPage === 'customer' || currentPage === 'scanner' ? 'camera' : 'add'}
       />
       
       <ToastContainer toasts={toasts} onRemove={removeToast} />
